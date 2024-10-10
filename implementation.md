@@ -4,7 +4,7 @@
 
 `shup build [-d OUT] FILE` will do the following:
 
-* Take one file name from argument
+* Take the main file name from argument FILE
 * if OUT is specified, create the file and prepare it for writing
 * process line-by-line, inspecting for file macros and syntax macros, and writing other lines to output
 * when a file macro is found
@@ -39,16 +39,28 @@ Inclusion resolution is done from a home "shup-file" at `~/.config/shell-up/shup
 
 Shell-Up natively supports some syntax macros for better QOL when writing shell scripts
 
-* `%function <name>(<arg names>) {`
+* `$%function <name>(<arg names>) {`
     * supporting positional names as local variables
     * if name prefixed with `*` then the name is a `declare -n <name>` reference (only works in bash)
     * if name is prefixed with `!` it is made global
     * if token `?` is encountered, the subsequent positional names are optional, cannot be a declare name
 
-## Other syntax items
+* Multiline exclusion boundaries: `#--` and `#--#`
+    * Excluded lines are not included in the finally assembled file at all.
+    * Start marked by a line starting with optional whitespace then `#--` .
+    * End marked by any line ending in `#--#` followed directly by newline or carriage return.
+    * As this is a naive macro, this will also be interpreted from within heredoc strings.
+    * Enders will be found if placed at the end of normal comment lines.
+
+## Other macros
 
 Some extra macros exist for library maintainer convenience
 
 `#%warn Message` - message to be printed by the transpiler when seen during a file import. Typically will be used by 3rd party library maintainers to flag impending deprecations.
 
 `###doc :<tags>` - denotes a documentation block, which will be removed during file import. It is ended by the `###/doc` line. A doc block can be looked for by `shell-doc` if implemented.
+
+## Extra tools
+
+`sh-doc` - allows printing of documentation string sections. `bash-doc [TAG]` will print only documentation items tagged with the `TAG` , or all documentation sections if none specified.
+

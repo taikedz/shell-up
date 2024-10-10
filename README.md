@@ -13,7 +13,7 @@ Shell-Up is a macro-based transpiler for use with shell scripts, for working aro
 
 It is desirable to transpile shell scripts typically because of thes limitations in code re-use, separation and being able to move-around single-scripts when deploying.
 
-This is a rewrite of Bash Builder (see below) to a native binary, which aims to achieve a few different goals:
+This is a rewrite of Bash Builder (see below) in Zig, which aims to achieve a few different goals:
 
 * A no-dependencies executable for performing the transpilation
 * A universal implementation that runs the same independently of execution platform
