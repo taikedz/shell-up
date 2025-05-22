@@ -5,10 +5,17 @@ type FileRegistry struct {
 }
 
 func (fr *FileRegistry) Register(filepath string) (bool, string, error) {
-	// resolve absolute path
-	// if file already registered, return `false, "", nil`
-	// else register, and return `true, abspath, nil`
-	// on error return `false, "", error{}`
+	abspath, err := AbsPath(filepath)
+	if err != nil {
+		return false, "", err
+	}
+
+	if fr.Has(abspath) {
+		return false, "", nil
+	}
+
+	fr.insert(abspath)
+	return true, abspath, nil
 }
 
 func (fr *FileRegistry) insert(filepath string) {
