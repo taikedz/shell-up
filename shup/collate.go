@@ -37,7 +37,7 @@ func Collate(stacksize int, filepath string, output io.Writer, registry *FileReg
 
 	for line_no, line := range(lines) {
 		if found, target := getIncludeTarget(line); found {
-			is_new, abspath, err := registry.Register(target) // FIXME - resolve target relative to filepath !
+			is_new, abspath, err := registry.Register(target) // FIXME - resolve target relative to filepath, then from searchpaths
 			if err != nil {
 				Fail(ERROR_SHUP, "Could not register '%s' (%s:%d)", target, filepath, line_no+1)
 			}
