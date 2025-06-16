@@ -26,6 +26,28 @@ There are two macros for pulling in external files ("file import"):
 
 Both macros push the file contents through the pre-processor.
 
+## Import targets
+
+Script can define its own import targets. By default, "$BBPATH" is used from environment to resolve paths. These special vars cause the resolution to ignore BBPATH and instead opt for the specific location
+
+* `%TOPD` - the directory containing the main file being processed
+    * e.g. For `shup .../path/to/file.sh` , we have `TOPD` set to `.../path/to`
+* `%HERE` - the directory containing the current file
+    * e.g. Inside `script.sh`, for `#%include std/out.sh` resolved from `~/.local/var` , `HERE` is set to `~/.local/var/std`
+* `%PWD` - the location where the `shup` command is being executed
+
+This allows scripts to surgically determine what they want to import
+
+```sh
+# -- Include a file relative to top script
+# Useful for avoiding dynamically resolved imports at all
+#%include %TOPD/src/util.sh
+
+# -- Include a specific side-car file
+# Useful for writing multi-file libraries
+#%include %HERE/color.sh
+```
+
 ### shup-file
 
 Inclusion resolution is done from a home "shup-file" at `~/.config/shell-up/shup.paths`, or from a path specified in a local shup-file at `./shup.paths` (ignoring the general location unless its first line is `#%add`)
