@@ -2,33 +2,44 @@
 
 ## Main pre-processor sequence
 
-`shup build [-d OUT] FILE` will do the following:
+`shup build [-o OUT] FILE` will do the following:
 
 * Take the main file name from argument FILE
-* if OUT is specified, create the file and prepare it for writing
+* if OUT is specified, create the file (and parent folders) and prepare it for writing
 * process line-by-line, inspecting for file macros and syntax macros, and writing other lines to output
 * when a file macro is found
     * derive the absolute and canonical file path for each file macro
-    * if seen and macros is '#%include', skip
-    * else if not seen or if macro is '#%insert'
+    * if seen and macros is `#%include`, skip
+    * else if not seen or if macro is `#%insert`
         * register the absolute and canonical file path
         * recurse into this file
     * write the result to output
 * when a syntax macro is found
     * perform the transformation and write to output
 
+`shup run FILE -- [ARGS ...]` will collate the script, and execute it with the specified arguments directly passed down
+
 ## File macros
 
 There are two macros for pulling in external files ("file import"):
 
-* `#%include TARGET` will include the target file contents if and only if the file has not been seen by any file macro
+* `#%include TARGET` will include the target file contents if and only if the file has not been seen by either of `insert` or `include` macros
 * `#%insert TARGET` will include the target file contents any time `#%insert` has been seen
 
 Both macros push the file contents through the pre-processor.
 
-## Import targets
+### shup-file
 
-Script can define its own import targets. By default, "$BBPATH" is used from environment to resolve paths. These special vars cause the resolution to ignore BBPATH and instead opt for the specific location
+Inclusion resolution is done from a home "shup-file" at `~/.config/shell-up/shup.paths`, or from a path specified in a local shup-file at `./shup.paths` (ignoring the general location unless its first line is `#%add`)
+
+* this is a file of absolute directory paths, not necessarily canonical
+* one path per line, empty lines and `#` comment lines accepted
+* the locations are all directories
+* the locations are searched first-to-last to resolve the include/insert target
+
+## Explicit Resolution vars
+
+Script can define its own import targets. These special vars cause the resolution to ignore shup-file sources, and instead opt for the specific location only.
 
 * `%TOPD` - the directory containing the main file being processed
     * e.g. For `shup .../path/to/file.sh` , we have `TOPD` set to `.../path/to`
@@ -40,22 +51,13 @@ This allows scripts to surgically determine what they want to import
 
 ```sh
 # -- Include a file relative to top script
-# Useful for avoiding dynamically resolved imports at all
+# -- Useful for avoiding dynamically resolved imports at all
 #%include %TOPD/src/util.sh
 
 # -- Include a specific side-car file
-# Useful for writing multi-file libraries
+# -- Useful for writing multi-file libraries
 #%include %HERE/color.sh
 ```
-
-### shup-file
-
-Inclusion resolution is done from a home "shup-file" at `~/.config/shell-up/shup.paths`, or from a path specified in a local shup-file at `./shup.paths` (ignoring the general location unless its first line is `#%add`)
-
-* this is a file of absolute directory paths, not necessarily canonical
-* one path per line, empty lines and `#` comment lines accepted
-* the locations are all directories
-* the locations are searched first-to-last to resolve the include/insert target
 
 ## Syntax macros
 
@@ -78,11 +80,11 @@ Shell-Up natively supports some syntax macros for better QOL when writing shell 
 
 Some extra macros exist for library maintainer convenience
 
-`#%warn Message` - message to be printed by the transpiler when seen during a file import. Typically will be used by 3rd party library maintainers to flag impending deprecations.
+`#%warn Message` - message to be printed by the transpiler when seen during a file import. Typically will be used by library maintainers to flag impending deprecations.
 
-`###doc :<tags>` - denotes a documentation block, which will be removed during file import. It is ended by the `###/doc` line. A doc block can be looked for by `shell-doc` if implemented.
+`###doc : <tags>` - denotes a documentation block, which will be removed during file import. It is ended by the `###/doc` line. A doc block can be looked for by `shup doc` if implemented. Tags are space-separated word tokens. Help blocks intended for developers should be tagged `docs`, help blocks intended for developers should be tagged `help`.
 
 ## Extra tools
 
-`sh-doc` - allows printing of documentation string sections. `bash-doc [TAG]` will print only documentation items tagged with the `TAG` , or all documentation sections if none specified.
+`shup doc FILE [TAG]` - allows printing of documentation string sections. If `TAG` is specified, shup-doc will print only documentation items tagged with the `TAG` , or all documentation sections if none specified. By default, `TAG` is set to `docs`, for dev-time documentation strings.
 
